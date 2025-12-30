@@ -204,7 +204,7 @@ body {
   width: 320px;
   height: 320px;
   border-radius: 50%;
-  background-image: url("./img/foto.png");
+  background-image: url("assets/img/foto.png");
   background-size: cover;
   background-position: center 30%;
   background-repeat: no-repeat;
@@ -567,8 +567,8 @@ body {
 
 .certifications h2 {
   text-align: center;
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2.8rem;
+  margin-bottom: 4rem;
   color: #1e3a8a;
   font-weight: 700;
 }
@@ -625,7 +625,7 @@ body {
 
 .cert-content h3 {
   font-size: 1.3rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   color: #1e3a8a;
   font-weight: 600;
 }
@@ -820,6 +820,10 @@ body {
   .category-tabs {
     flex-direction: column;
     align-items: center;
+  }
+
+  .skills-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 /* Hero Animations */
@@ -1071,7 +1075,7 @@ h2 .highlight {
 }
 
 .toefl-bg {
-  background-image: url("img/TOEFL_Try Novaldi Ramadhan Muadi.jpg");
+  background-image: url("assets/img/TOEFL_Try Novaldi Ramadhan Muadi.jpg");
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
