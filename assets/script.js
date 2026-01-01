@@ -31,7 +31,7 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
 
 // Project Category Tabs
 const tabBtns = document.querySelectorAll(".tab-btn");
-const projectGrids = document.querySelectorAll(".projects-grid");
+const allProjects = document.querySelectorAll(".project-card");
 
 tabBtns.forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -40,17 +40,22 @@ tabBtns.forEach((btn) => {
     // Add active class to clicked tab
     btn.classList.add("active");
 
-    // Hide all project grids
-    projectGrids.forEach((grid) => grid.classList.add("hidden"));
-
-    // Show selected category
     const category = btn.getAttribute("data-category");
-    const targetGrid = document.getElementById(`${category}-projects`);
-    if (targetGrid) {
-      targetGrid.classList.remove("hidden");
-      // Reset slide position when switching tabs
-      currentProjectSlide = 0;
-      targetGrid.style.transform = 'translateX(0%)';
+    
+    // Show/hide projects based on category
+    allProjects.forEach((project) => {
+      if (project.classList.contains(`${category}-project`)) {
+        project.style.display = "flex";
+      } else {
+        project.style.display = "none";
+      }
+    });
+    
+    // Reset slide position
+    currentProjectSlide = 0;
+    const projectGrid = document.getElementById('allProjects');
+    if (projectGrid) {
+      projectGrid.style.transform = 'translateX(0%)';
     }
   });
 });
@@ -67,28 +72,34 @@ window.addEventListener("scroll", () => {
   }
 });
 
-// Enhanced scroll animations
+// Enhanced scroll animations with bidirectional support
+let lastScrollY = 0;
+
 window.addEventListener('scroll', () => {
-  const elements = document.querySelectorAll('.skill-item, .project-card, .cert-card, .about-desc, .hero-content');
+  const currentScrollY = window.scrollY;
+  const scrollDirection = currentScrollY > lastScrollY ? 'down' : 'up';
+  
+  const elements = document.querySelectorAll('.fade-up');
   
   elements.forEach((el, index) => {
     const rect = el.getBoundingClientRect();
-    const isVisible = rect.top < window.innerHeight - 100;
+    const isVisible = rect.top < window.innerHeight - 100 && rect.bottom > 0;
     
     if (isVisible && !el.classList.contains('animated')) {
-      el.classList.add('animated');
-      el.style.animationDelay = `${index * 0.1}s`;
+      setTimeout(() => {
+        el.classList.add('animated');
+      }, index * 50);
+    } else if (!isVisible && scrollDirection === 'up') {
+      el.classList.remove('animated');
     }
   });
+  
+  lastScrollY = currentScrollY;
 });
 
 // Initialize animations on load
 document.addEventListener('DOMContentLoaded', () => {
-  const elements = document.querySelectorAll('.skill-item, .project-card, .cert-card');
-  elements.forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(30px)';
-  });
+  // Animation controller will handle this
 });
 
 // Contact form handling - REMOVED
@@ -169,48 +180,89 @@ function getProjectCardsPerView() {
 }
 
 function slideProjects(direction) {
-  const activeGrid = document.querySelector('.projects-grid:not(.hidden)');
-  if (!activeGrid) return;
+  const projectGrid = document.getElementById('allProjects');
+  if (!projectGrid) return;
   
-  const projectCards = activeGrid.querySelectorAll('.project-card');
-  const totalCards = projectCards.length;
+  const totalCards = projectGrid.querySelectorAll('.project-card').length;
   const cardsPerView = getProjectCardsPerView();
+  
+  // Don't slide if all cards fit in viewport
+  if (cardsPerView >= totalCards) {
+    currentProjectSlide = 0;
+    projectGrid.style.transform = 'translateX(0%)';
+    return;
+  }
+  
+  const maxSlide = totalCards - cardsPerView;
   
   currentProjectSlide += direction;
   
   if (currentProjectSlide < 0) {
     currentProjectSlide = 0;
-  } else if (currentProjectSlide > totalCards - cardsPerView) {
-    currentProjectSlide = totalCards - cardsPerView;
+  } else if (currentProjectSlide > maxSlide) {
+    currentProjectSlide = maxSlide;
   }
   
   const translateX = -(currentProjectSlide * (100 / cardsPerView));
-  activeGrid.style.transform = 'translateX(' + translateX + '%)';
+  projectGrid.style.transform = 'translateX(' + translateX + '%)';
 }
 
 // Skills slider functionality - Responsive
 let currentSkillSlide = 0;
 
 function getSkillCardsPerView() {
-  return window.innerWidth <= 768 ? 1 : window.innerWidth <= 1024 ? 2 : 4;
+  return window.innerWidth <= 768 ? 1 : window.innerWidth <= 1024 ? 2 : 3;
 }
 
 function slideSkills(direction) {
   const skillGrid = document.getElementById('skillsGrid');
-  const skillCards = document.querySelectorAll('.skill-item');
-  const totalCards = skillCards.length;
+  if (!skillGrid) return;
+  
+  const totalCards = skillGrid.querySelectorAll('.skill-item').length;
   const cardsPerView = getSkillCardsPerView();
+  
+  // Don't slide if all cards fit in viewport (desktop)
+  if (cardsPerView >= totalCards) {
+    currentSkillSlide = 0;
+    skillGrid.style.transform = 'translateX(0%)';
+    return;
+  }
+  
+  const maxSlide = totalCards - cardsPerView;
   
   currentSkillSlide += direction;
   
   if (currentSkillSlide < 0) {
     currentSkillSlide = 0;
-  } else if (currentSkillSlide > totalCards - cardsPerView) {
-    currentSkillSlide = totalCards - cardsPerView;
+  } else if (currentSkillSlide > maxSlide) {
+    currentSkillSlide = maxSlide;
   }
   
   const translateX = -(currentSkillSlide * (100 / cardsPerView));
   skillGrid.style.transform = 'translateX(' + translateX + '%)';
+}
+
+// Touch/swipe support for skills
+let skillTouchStartX = 0;
+let skillTouchEndX = 0;
+
+function handleSkillTouchStart(e) {
+  skillTouchStartX = e.changedTouches[0].screenX;
+}
+
+function handleSkillTouchEnd(e) {
+  skillTouchEndX = e.changedTouches[0].screenX;
+  handleSkillSwipe();
+}
+
+function handleSkillSwipe() {
+  const swipeThreshold = 50;
+  if (skillTouchEndX < skillTouchStartX - swipeThreshold) {
+    slideSkills(1); // Swipe left - next
+  }
+  if (skillTouchEndX > skillTouchStartX + swipeThreshold) {
+    slideSkills(-1); // Swipe right - prev
+  }
 }
 
 // Certificate slider functionality - Responsive
@@ -222,16 +274,26 @@ function getCardsPerView() {
 
 function slideCerts(direction) {
   const certGrid = document.getElementById('certGrid');
-  const certCards = document.querySelectorAll('.cert-card');
-  const totalCards = certCards.length;
+  if (!certGrid) return;
+  
+  const totalCards = certGrid.querySelectorAll('.cert-card').length;
   const cardsPerView = getCardsPerView();
+  
+  // Don't slide if all cards fit in viewport
+  if (cardsPerView >= totalCards) {
+    currentCertSlide = 0;
+    certGrid.style.transform = 'translateX(0%)';
+    return;
+  }
+  
+  const maxSlide = totalCards - cardsPerView;
   
   currentCertSlide += direction;
   
   if (currentCertSlide < 0) {
     currentCertSlide = 0;
-  } else if (currentCertSlide > totalCards - cardsPerView) {
-    currentCertSlide = totalCards - cardsPerView;
+  } else if (currentCertSlide > maxSlide) {
+    currentCertSlide = maxSlide;
   }
   
   const translateX = -(currentCertSlide * (100 / cardsPerView));
@@ -250,13 +312,23 @@ document.addEventListener('DOMContentLoaded', function() {
       projectNextBtn.onclick = function() { slideProjects(1); };
     }
     
+    // Project pagination dots
+    // Removed pagination dots functionality
+    
     // Skills slider
     const skillPrevBtn = document.querySelector('.skill-prev');
     const skillNextBtn = document.querySelector('.skill-next');
+    const skillsGrid = document.getElementById('skillsGrid');
     
     if (skillPrevBtn && skillNextBtn) {
       skillPrevBtn.onclick = function() { slideSkills(-1); };
       skillNextBtn.onclick = function() { slideSkills(1); };
+    }
+    
+    // Add touch support for skills
+    if (skillsGrid) {
+      skillsGrid.addEventListener('touchstart', handleSkillTouchStart, false);
+      skillsGrid.addEventListener('touchend', handleSkillTouchEnd, false);
     }
     
     // Certificates slider
@@ -286,7 +358,11 @@ function handleResize() {
     skillGrid.style.transform = 'translateX(0%)';
   }
   if (activeProjectGrid) {
-    activeProjectGrid.style.transform = 'translateX(0%)';
+    const cardsPerView = getProjectCardsPerView();
+    const totalCards = activeProjectGrid.querySelectorAll('.project-card').length;
+    if (cardsPerView >= totalCards) {
+      activeProjectGrid.style.transform = 'translateX(0%)';
+    }
   }
 }
 
@@ -337,3 +413,41 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+/* ===== ANIMATION CONTROLLER ===== */
+
+class AnimationController {
+  constructor() {
+    this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.init();
+  }
+
+  init() {
+    if (this.isReducedMotion) return;
+    this.initScrollAnimations();
+  }
+
+  initScrollAnimations() {
+    // Intersection Observer for initial load animations
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry, index) => {
+          if (entry.isIntersecting && !entry.target.classList.contains('animated')) {
+            setTimeout(() => {
+              entry.target.classList.add('animated');
+            }, index * 100);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    document.querySelectorAll('.fade-up').forEach(el => {
+      observer.observe(el);
+    });
+  }
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  window.animationController = new AnimationController();
+});
