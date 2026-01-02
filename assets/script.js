@@ -183,7 +183,7 @@ function slideProjects(direction) {
   const projectGrid = document.getElementById('allProjects');
   if (!projectGrid) return;
   
-  const totalCards = projectGrid.querySelectorAll('.project-card').length;
+  const totalCards = projectGrid.querySelectorAll('.card').length;
   const cardsPerView = getProjectCardsPerView();
   
   // Don't slide if all cards fit in viewport
@@ -218,7 +218,7 @@ function slideSkills(direction) {
   const skillGrid = document.getElementById('skillsGrid');
   if (!skillGrid) return;
   
-  const totalCards = skillGrid.querySelectorAll('.skill-item').length;
+  const totalCards = skillGrid.querySelectorAll('.card').length;
   const cardsPerView = getSkillCardsPerView();
   
   // Don't slide if all cards fit in viewport (desktop)
@@ -276,7 +276,7 @@ function slideCerts(direction) {
   const certGrid = document.getElementById('certGrid');
   if (!certGrid) return;
   
-  const totalCards = certGrid.querySelectorAll('.cert-card').length;
+  const totalCards = certGrid.querySelectorAll('.card').length;
   const cardsPerView = getCardsPerView();
   
   // Don't slide if all cards fit in viewport
@@ -359,7 +359,7 @@ function handleResize() {
   }
   if (activeProjectGrid) {
     const cardsPerView = getProjectCardsPerView();
-    const totalCards = activeProjectGrid.querySelectorAll('.project-card').length;
+    const totalCards = activeProjectGrid.querySelectorAll('.card').length;
     if (cardsPerView >= totalCards) {
       activeProjectGrid.style.transform = 'translateX(0%)';
     }
